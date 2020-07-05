@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -58,17 +59,28 @@ public class Runner {
                 }
             }
 
-            int visitedPages = 0;
+            // print result
             File file = new File("/Users/ivansilaev/Downloads/gitRepos/webCrawler/src/main/resources/result.csv");
             try (PrintWriter writer = new PrintWriter(file)) {
+                int visitedPages = 0;
                 while (visitedPages < MAX_VISITED_PAGES) {
                     writer.println(statisticsService.buildStatistics(linkQueue.poll(), attrs, resultMap));
                     ++visitedPages;
                 }
             }
 
-            for (Map.Entry<Integer, String> entry : resultMap.entrySet()) {
-                System.out.println(entry.getKey() + ": " + entry.getValue());
+            // print top 10 pages
+            file = new File("/Users/ivansilaev/Downloads/gitRepos/webCrawler/src/main/resources/top10.csv");
+            try (PrintWriter writer = new PrintWriter(file)) {
+                int count = 0;
+                Iterator<Map.Entry<Integer, String>> iterator = resultMap.entrySet().iterator();
+                while (count < 10) {
+                    if (iterator.hasNext()) {
+                        Map.Entry<Integer, String> pair = iterator.next();
+                        writer.println(pair.getKey() + ", " + pair.getValue());
+                    }
+                    ++count;
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Search failure", e);
