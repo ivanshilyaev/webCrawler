@@ -10,12 +10,19 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class StatisticsService {
+    private static final StatisticsService INSTANCE = new StatisticsService();
+
+    public static StatisticsService getInstance() {
+        return INSTANCE;
+    }
+
     private StatisticsService() {
     }
 
-    public static void addLinks(Queue<String> linkQueue, int depth, String url) throws IOException {
+    public void addLinks(Queue<String> linkQueue, int depth, String url) throws IOException {
         Document root = Jsoup.connect(url).get();
         Set<Element> tempSet;
         Set<Element> set = new HashSet<>();
@@ -25,6 +32,7 @@ public class StatisticsService {
             set = new HashSet<>();
             for (Element element : tempSet) {
                 set.add(element);
+                // select all links on the page
                 Elements links = element.select("a[href]");
                 set.addAll(links);
             }
@@ -34,19 +42,24 @@ public class StatisticsService {
         }
     }
 
-    public static String buildStatistics(String url, String[] attrs) throws IOException {
-        Document doc = Jsoup.connect(url).get();
-        String text = doc.body().text();
-        StringBuilder builder = new StringBuilder();
-        builder.append(url).append(" ");
-        int totalHits = 0;
-        int currentHits;
-        for (String attr : attrs) {
-            currentHits = StringUtils.countMatches(text, attr);
-            builder.append(currentHits).append(" ");
-            totalHits += currentHits;
+    public String buildStatistics(String url, String[] attrs, ConcurrentSkipListMap<Integer, String> resultMap) {
+        try {
+            Document doc = Jsoup.connect(url).get();
+            String text = doc.body().text();
+            StringBuilder builder = new StringBuilder();
+            builder.append(url).append(" ");
+            int totalHits = 0;
+            int currentHits;
+            for (String attr : attrs) {
+                currentHits = StringUtils.countMatches(text, attr);
+                builder.append(currentHits).append(" ");
+                totalHits += currentHits;
+            }
+            builder.append(totalHits);
+            resultMap.put(totalHits, url);
+            return builder.toString();
+        } catch (IOException | IllegalArgumentException e) {
+            return "Invalid link";
         }
-        builder.append(totalHits).append("\n");
-        return builder.toString();
     }
 }

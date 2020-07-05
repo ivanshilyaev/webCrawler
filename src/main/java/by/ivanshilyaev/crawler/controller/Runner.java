@@ -10,9 +10,13 @@ import com.google.api.services.customsearch.model.Search;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 public class Runner {
     private static final String SEARCH_ENGINE_ID = "009675484660055542115:3viexnmtvvq";
@@ -20,16 +24,21 @@ public class Runner {
     private static String searchQuery;
 
     private static final int LINK_DEPTH = 1;
-    private static final int MAX_VISITED_PAGES = 300;
+    private static final int MAX_VISITED_PAGES = 20;
     private static ConcurrentLinkedQueue<String> linkQueue = new ConcurrentLinkedQueue<>();
+    private static ConcurrentSkipListMap<Integer, String> resultMap = new ConcurrentSkipListMap<>(Collections.reverseOrder());
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static String[] attrs = {"Spring", "Java", "and", "main"};
+    private static final String[] attrs = {"Tesla", "Musk", "Gigafactory", "Elon Mask"};
+
+    public static String convertToCSV(String[] data) {
+        return String.join(",", data);
+    }
 
     public static void main(String[] args) {
         try {
-            searchQuery = "java spring";
+            searchQuery = Arrays.toString(attrs);
 
             // Instance Custom search
             Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(),
@@ -37,25 +46,31 @@ public class Runner {
                     .setApplicationName("webCrawler")
                     .setGoogleClientRequestInitializer(new CustomsearchRequestInitializer(API_KEY))
                     .build();
-
             // Set search parameter
             Customsearch.Cse.List list = cs.cse().list(searchQuery).setCx(SEARCH_ENGINE_ID);
-
             // Execute search (first 10 pages)
             Search result = list.execute();
+            StatisticsService statisticsService = StatisticsService.getInstance();
             if (result.getItems() != null) {
                 for (Result resultItem : result.getItems()) {
                     String url = resultItem.getLink();
-                    StatisticsService.addLinks(linkQueue, LINK_DEPTH, url);
+                    statisticsService.addLinks(linkQueue, LINK_DEPTH, url);
                 }
             }
 
             int visitedPages = 0;
-            while (visitedPages < MAX_VISITED_PAGES) {
-                System.out.println(visitedPages + ": " + StatisticsService.buildStatistics(linkQueue.poll(), attrs));
-                ++visitedPages;
+            File file = new File("/Users/ivansilaev/Downloads/gitRepos/webCrawler/src/main/resources/result.csv");
+            try (PrintWriter writer = new PrintWriter(file)) {
+                while (visitedPages < MAX_VISITED_PAGES) {
+                    writer.println(statisticsService.buildStatistics(linkQueue.poll(), attrs, resultMap));
+                    ++visitedPages;
+                }
             }
-        } catch (IOException | GeneralSecurityException e) {
+
+            for (Map.Entry<Integer, String> entry : resultMap.entrySet()) {
+                System.out.println(entry.getKey() + ": " + entry.getValue());
+            }
+        } catch (Exception e) {
             LOGGER.error("Search failure", e);
         }
     }
