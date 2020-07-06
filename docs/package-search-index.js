@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"by.ivanshilyaev.crawler"},{"l":"by.ivanshilyaev.crawler.controller"},{"l":"by.ivanshilyaev.crawler.dao"},{"l":"by.ivanshilyaev.crawler.dao.exception"},{"l":"by.ivanshilyaev.crawler.service"},{"l":"by.ivanshilyaev.crawler.service.exception"}]
