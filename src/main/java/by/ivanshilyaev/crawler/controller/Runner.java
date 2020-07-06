@@ -1,10 +1,8 @@
 package by.ivanshilyaev.crawler.controller;
 
-import by.ivanshilyaev.crawler.service.StatisticsService;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.customsearch.Customsearch;
-import com.google.api.services.customsearch.CustomsearchRequestInitializer;
+import by.ivanshilyaev.crawler.service.AddLinksCommand;
+import by.ivanshilyaev.crawler.service.BuildStatisticsCommand;
+import by.ivanshilyaev.crawler.service.SearchRequestCommand;
 import com.google.api.services.customsearch.model.Result;
 import com.google.api.services.customsearch.model.Search;
 import org.apache.logging.log4j.LogManager;
@@ -12,60 +10,63 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class Runner {
-    private static final String SEARCH_ENGINE_ID = "009675484660055542115:3viexnmtvvq";
-    private static final String API_KEY = "AIzaSyChq7hCghn5jL6Ydmg2V0IVEzmGMa9NhUo";
-    private static String searchQuery;
-
-    private static final int LINK_DEPTH = 1;
-    private static final int MAX_VISITED_PAGES = 20;
-    private static ConcurrentLinkedQueue<String> linkQueue = new ConcurrentLinkedQueue<>();
-    private static ConcurrentSkipListMap<Integer, String> resultMap = new ConcurrentSkipListMap<>(Collections.reverseOrder());
-
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String[] attrs = {"Tesla", "Musk", "Gigafactory", "Elon Mask"};
 
-    public static String convertToCSV(String[] data) {
-        return String.join(",", data);
-    }
+    public static final int LINK_DEPTH = 1;
+    private static final int MAX_VISITED_PAGES = 20;
+
+    public static Queue<String> linkQueue = new ConcurrentLinkedQueue<>();
+
+    public static Queue<String> resultQueue = new ConcurrentLinkedQueue<>();
+
+    public static ConcurrentMap<Integer, String> resultMap = new ConcurrentSkipListMap<>(Collections.reverseOrder());
 
     public static void main(String[] args) {
         try {
-            searchQuery = Arrays.toString(attrs);
+            // 1. search
+            String searchQuery = Arrays.toString(attrs);
+            SearchRequestCommand searchRequestCommand = new SearchRequestCommand();
+            Search result = searchRequestCommand.getSearchResult(searchQuery);
 
-            // Instance Custom search
-            Customsearch cs = new Customsearch.Builder(GoogleNetHttpTransport.newTrustedTransport(),
-                    JacksonFactory.getDefaultInstance(), null)
-                    .setApplicationName("webCrawler")
-                    .setGoogleClientRequestInitializer(new CustomsearchRequestInitializer(API_KEY))
-                    .build();
-            // Set search parameter
-            Customsearch.Cse.List list = cs.cse().list(searchQuery).setCx(SEARCH_ENGINE_ID);
-            // Execute search (first 10 pages)
-            Search result = list.execute();
-            StatisticsService statisticsService = StatisticsService.getInstance();
+            // 2. adding links
+            ExecutorService executorService = Executors.newCachedThreadPool();
             if (result.getItems() != null) {
                 for (Result resultItem : result.getItems()) {
                     String url = resultItem.getLink();
-                    statisticsService.addLinks(linkQueue, LINK_DEPTH, url);
+                    executorService.submit(new AddLinksCommand(url, LINK_DEPTH));
                 }
             }
+            ThreadPoolExecutor pool = (ThreadPoolExecutor) executorService;
+            while (pool.getActiveCount() != 0) {
+                TimeUnit.MILLISECONDS.sleep(500);
+            }
+            executorService.shutdown();
 
+            // 3. building results
+            executorService = Executors.newCachedThreadPool();
+            int visitedPages = 0;
+            while (visitedPages < MAX_VISITED_PAGES) {
+                executorService.submit(new BuildStatisticsCommand(linkQueue.poll(), attrs));
+                ++visitedPages;
+            }
+            pool = (ThreadPoolExecutor) executorService;
+            while (pool.getActiveCount() != 0) {
+                TimeUnit.MILLISECONDS.sleep(500);
+            }
+            executorService.shutdown();
+
+            // 4. writing results to file
             // print result
             File file = new File("/Users/ivansilaev/Downloads/gitRepos/webCrawler/src/main/resources/result.csv");
             try (PrintWriter writer = new PrintWriter(file)) {
-                int visitedPages = 0;
-                while (visitedPages < MAX_VISITED_PAGES) {
-                    writer.println(statisticsService.buildStatistics(linkQueue.poll(), attrs, resultMap));
-                    ++visitedPages;
+                while (!resultQueue.isEmpty()) {
+                    writer.println(resultQueue.poll());
                 }
             }
 
@@ -78,6 +79,7 @@ public class Runner {
                     if (iterator.hasNext()) {
                         Map.Entry<Integer, String> pair = iterator.next();
                         writer.println(pair.getKey() + ", " + pair.getValue());
+                        System.out.println(pair.getKey() + ", " + pair.getValue());
                     }
                     ++count;
                 }
