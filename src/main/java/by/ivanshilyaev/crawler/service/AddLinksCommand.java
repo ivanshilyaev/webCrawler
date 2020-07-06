@@ -12,17 +12,40 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Special class that works with concrete url.
+ *
+ * @version 1.0
+ * @since 2020-07-06
+ */
+
 public class AddLinksCommand implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    /**
+     * Concrete url we are working with.
+     */
     private final String url;
+    /**
+     * Depth of the links we are going to process.
+     */
     private final int depth;
 
+    /**
+     * Creates {@code AddLinksCommand} instance.
+     *
+     * @param url   concrete url.
+     * @param depth predefined link depth.
+     */
     public AddLinksCommand(String url, int depth) {
         this.url = url;
         this.depth = depth;
     }
 
+    /**
+     * Overridden method of the {@code Runnable} interface.
+     * Get all the links from the page with given depths and add them to the queue.
+     */
     @Override
     public void run() {
         try {
