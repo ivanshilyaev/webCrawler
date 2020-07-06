@@ -1,6 +1,6 @@
 package by.ivanshilyaev.crawler.service;
 
-import by.ivanshilyaev.crawler.controller.Runner;
+import by.ivanshilyaev.crawler.controller.Controller;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
@@ -41,7 +41,7 @@ public class AddLinksCommand implements Runnable {
                 }
             }
             for (Element link : set) {
-                Runner.linkQueue.add(link.attr("abs:href"));
+                Controller.linkQueue.add(link.attr("abs:href"));
             }
         } catch (IOException e) {
             LOGGER.error("Couldn't get link", e);

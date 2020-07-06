@@ -1,6 +1,6 @@
 package by.ivanshilyaev.crawler.service;
 
-import by.ivanshilyaev.crawler.controller.Runner;
+import by.ivanshilyaev.crawler.controller.Controller;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,10 +35,10 @@ public class BuildStatisticsCommand implements Runnable {
                 totalHits += currentHits;
             }
             builder.append(totalHits);
-            Runner.resultMap.put(totalHits, url);
-            Runner.resultQueue.add(builder.toString());
+            Controller.mapWithLinksAndTotalHits.put(totalHits, url);
+            Controller.queueWithLinksAndStatistics.add(builder.toString());
         } catch (IOException | IllegalArgumentException e) {
-            Runner.resultQueue.add("Invalid link");
+            Controller.queueWithLinksAndStatistics.add("Invalid link");
         }
     }
 }
