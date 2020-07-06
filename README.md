@@ -110,6 +110,8 @@ mvn clean compile assembly:single
 java -jar target/*.jar <search arguments>
 ```
 
+## Description
+
 List of technologies used:
 
  - Java 11
@@ -127,6 +129,12 @@ List of technologies used:
  - Log4j2 2.13.0
 
  - IntelliJ IDEA 2020.1.2
+ 
+For this task I’ve created my custom google search engine and used Custom Search API Client [Library](https://github.com/googleapis/google-api-java-client-services/tree/master/clients/google-api-services-customsearch/v1) for Java. Top-level domains used in search: .com, .net, .org, .biz, .info, .edu.
+ 
+[Link](https://drive.google.com/file/d/1f2OKnxmnjMDf1k7pePzxi1gigsZeIbls/view?usp=sharing) for the demo video.
+
+---
 
 by [@ivanshilyaev](https://github.com/ivanshilyaev), 2020
 
