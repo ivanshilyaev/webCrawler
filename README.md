@@ -1,7 +1,7 @@
 ﻿
 # Test task for Softeq
 
-🖥 “Web crawler”
+## Web crawler
 
 ### Preconditions
 
@@ -22,31 +22,31 @@ Implement a web crawler that traverses websites following predefined link depth 
 
 Input (Terms): 
  
-Tesla, Musk, Gigafactory, Elon Mask
+	Tesla, Musk, Gigafactory, Elon Mask
 
 Output:  
 
-acbd.com/page2.html 8 4 0 5 17 
+	acbd.com/page2.html 8 4 0 5 17 
 
-acbd.com/page1.html 3 2 0 2 7 a
+	acbd.com/page1.html 3 2 0 2 7
 
-cbd.com/page2.html 0 1 0 1 2
+	acbd.com/page2.html 0 1 0 1 2
 
 Clarification:  
 
-For acbd.com/page1.html 3 2 0 2 7 
+	For acbd.com/page1.html 3 2 0 2 7 
 
-Numbers are
+	Numbers are
 
-Tesla - 3 hits  
+		Tesla - 3 hits  
 
-Musk - 2 hits 
+		Musk - 2 hits 
 
-Gigafactory - 0
-
-hits Elon Mask - 2
-
-hits Total - 7 hits
+		Gigafactory - 0 hits 
+		
+		Elon Mask - 2 hits
+		
+		Total - 7 hits
 
 All stat data should be serialized into CSV file (no predefined sort). Top 10 pages by total hits must be printed to separate CSV file and console (sorted by total hits)
 
@@ -85,7 +85,48 @@ All stat data should be serialized into CSV file (no predefined sort). Top 10 pa
     c.  Take a code tour and clarify selected solutions
         
     d.  Prepare it in English
----
+
+## Configuration and startup
+
+### Maven
+
+1. Clone the project
+```
+git clone https://github.com/ivanshilyaev/webCrawler
+```
+
+2. Go to the directory
+```
+cd webCrawler
+```
+
+3. Compile project
+```
+mvn clean compile assembly:single
+```
+
+4. And run
+```
+java -jar target/*.jar <search arguments>
+```
+
+List of technologies used:
+
+ - Java 11
+ 
+ - Maven 3.6.3
+ 
+ - Jsoup 1.13.1
+
+ - Apache Commons Lang 3.10
+
+ - Custom Search API Client Library for Java from Google
+
+ - JUnit 5.1.0
+
+ - Log4j2 2.13.0
+
+ - IntelliJ IDEA 2020.1.2
 
 by [@ivanshilyaev](https://github.com/ivanshilyaev), 2020
 
