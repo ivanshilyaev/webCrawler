@@ -2,18 +2,14 @@ package by.ivanshilyaev.crawler.service;
 
 import by.ivanshilyaev.crawler.controller.Controller;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 
 public class BuildStatisticsCommand implements Runnable {
-    private static final Logger LOGGER = LogManager.getLogger();
-
-    private String url;
-    private String[] attrs;
+    private final String url;
+    private final String[] attrs;
 
     public BuildStatisticsCommand(String url, String[] attrs) {
         this.url = url;

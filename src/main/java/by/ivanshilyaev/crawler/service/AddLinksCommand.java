@@ -15,8 +15,8 @@ import java.util.Set;
 public class AddLinksCommand implements Runnable {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private String url;
-    private int depth;
+    private final String url;
+    private final int depth;
 
     public AddLinksCommand(String url, int depth) {
         this.url = url;
